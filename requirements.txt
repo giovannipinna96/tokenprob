@@ -1,0 +1,63 @@
+# Core ML and NLP libraries
+torch>=2.0.0
+transformers>=4.35.0
+accelerate>=0.24.0
+tokenizers>=0.14.0
+
+# Visualization libraries
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.15.0
+ipython>=8.0.0
+
+# Data processing libraries
+numpy>=1.21.0
+pandas>=1.3.0
+
+# Optional: For better performance and GPU support
+# Uncomment the following lines if you have CUDA available
+# torch-audio  # For audio processing if needed
+# torchaudio   # For audio processing if needed
+
+# Optional: For quantization support (if using quantized models)
+# bitsandbytes>=0.41.0
+# optimum>=1.20.0
+
+# Optional: For advanced model serving
+# text-generation-inference  # For TGI deployment
+# vllm  # For vLLM deployment
+
+# Development and testing tools
+pytest>=7.0.0
+black>=23.0.0
+flake8>=5.0.0
+
+# Jupyter notebook support (optional)
+jupyter>=1.0.0
+notebook>=6.0.0
+jupyterlab>=3.0.0
+
+# For web-based visualizations
+jinja2>=3.0.0
+
+# For handling large files and memory management
+psutil>=5.8.0
+
+# For progress bars and better CLI experience
+tqdm>=4.60.0
+
+# For handling configuration files
+pyyaml>=6.0
+configparser>=5.0.0
+
+# For statistical analysis
+scipy>=1.7.0
+scikit-learn>=1.0.0
+
+# For improved HTML rendering
+beautifulsoup4>=4.9.0
+lxml>=4.6.0
+
+# For better error handling and logging
+colorlog>=6.0.0
+rich>=13.0.0
