@@ -27,7 +27,7 @@ from visualizer import TokenVisualizer, TokenVisualizationMode
 from use_case import CodeGenerationUseCase
 
 
-def simple_text_generation_example():
+def simple_text_generation_example(model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct"):
     """
     Simple example: Generate text and show basic probability analysis.
     """
@@ -36,8 +36,8 @@ def simple_text_generation_example():
     print("="*60)
     
     # Initialize analyzer
-    print("Loading Qwen 2.5 Coder 7B Instruct model...")
-    analyzer = QwenProbabilityAnalyzer()
+    print(f"Loading {model_name} model...")
+    analyzer = QwenProbabilityAnalyzer(model_name=model_name)
     
     # Simple prompt
     prompt = "Explain how recursion works in programming with a simple example."
@@ -102,7 +102,7 @@ def simple_text_generation_example():
     return "simple_example_visualization.html"
 
 
-def advanced_code_analysis_example():
+def advanced_code_analysis_example(model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct"):
     """
     Advanced example: Full code generation analysis with the use case.
     """
@@ -145,7 +145,7 @@ def advanced_code_analysis_example():
     return "advanced_code_analysis.html"
 
 
-def comparison_example():
+def comparison_example(model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct"):
     """
     Example comparing different temperature settings and their effects on confidence.
     """
@@ -153,7 +153,7 @@ def comparison_example():
     print("TEMPERATURE COMPARISON EXAMPLE")
     print("="*60)
     
-    analyzer = QwenProbabilityAnalyzer()
+    analyzer = QwenProbabilityAnalyzer(model_name=model_name)
     visualizer = TokenVisualizer()
     
     prompt = "Write a function to check if a number is prime."
@@ -249,7 +249,7 @@ def comparison_example():
     return "temperature_comparison.html"
 
 
-def interactive_demo():
+def interactive_demo(model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct"):
     """
     Interactive demo where user can input their own prompts.
     """
@@ -259,7 +259,7 @@ def interactive_demo():
     print("Enter your own prompts to see how the model's confidence varies!")
     print("Type 'quit' to exit the demo.")
     
-    analyzer = QwenProbabilityAnalyzer()
+    analyzer = QwenProbabilityAnalyzer(model_name=model_name)
     visualizer = TokenVisualizer()
     
     demo_count = 0
@@ -333,7 +333,9 @@ def main():
     parser = argparse.ArgumentParser(description="LLM Token Probability Analysis Examples")
     parser.add_argument("--example", choices=["simple", "advanced", "comparison", "interactive", "all"],
                        default="all", help="Which example to run")
-    parser.add_argument("--open-browser", action="store_true", 
+    parser.add_argument("--model", type=str, default="Qwen/Qwen2.5-Coder-7B-Instruct",
+                       help="HuggingFace model name to use for analysis")
+    parser.add_argument("--open-browser", action="store_true",
                        help="Automatically open results in browser")
     
     args = parser.parse_args()
@@ -349,19 +351,19 @@ def main():
     
     try:
         if args.example in ["simple", "all"]:
-            html_file = simple_text_generation_example()
+            html_file = simple_text_generation_example(model_name=args.model)
             html_files.append(html_file)
-        
+
         if args.example in ["comparison", "all"]:
-            html_file = comparison_example()
+            html_file = comparison_example(model_name=args.model)
             html_files.append(html_file)
-        
+
         if args.example in ["advanced", "all"]:
-            html_file = advanced_code_analysis_example()
+            html_file = advanced_code_analysis_example(model_name=args.model)
             html_files.append(html_file)
-        
+
         if args.example == "interactive":
-            interactive_demo()
+            interactive_demo(model_name=args.model)
         
         # Open browser if requested
         if args.open_browser and html_files:
