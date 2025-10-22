@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""
+Report Generator
+
+Generates comprehensive markdown and HTML reports for comparison study.
+"""
+
+import os
+from datetime import datetime
+from typing import Dict, Any
+
+
+class ReportGenerator:
+    """Generate comparison study reports."""
+
+    def generate_markdown_report(self, results: Dict, stats: Dict, output_dir: str):
+        """Generate comprehensive markdown report."""
+        print("\nGenerating markdown report...")
+
+        report = self._build_markdown(results, stats)
+
+        filename = os.path.join(output_dir, "comparison_report.md")
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(report)
+
+        print(f"  Report saved to: comparison_report.md")
+
+    def _build_markdown(self, results: Dict, stats: Dict) -> str:
+        """Build markdown content."""
+        metadata = results['metadata']
+        ranking = stats.get('ranking', [])
+        rates = stats.get('confirmation_rates', {})
+
+        report = f"""# Multi-Model Error Detection Comparison Study
+
+**Date:** {metadata['timestamp']}
+**Models Tested:** {metadata['num_models']}
+**Test Examples:** {metadata['num_examples']}
+**Sensitivity Factor (k):** {metadata['sensitivity_factor']}
+
+## Executive Summary
+
+This study compares {metadata['num_models']} state-of-the-art code models for logical error detection using the LecPrompt approach.
+
+### Best Performing Model
+
+🏆 **{ranking[0] if ranking else 'N/A'}** - {rates.get(ranking[0], 0):.1%} confirmation rate
+
+### Model Ranking
+
+"""
+        for i, model in enumerate(ranking, 1):
+            rate = rates.get(model, 0)
+            report += f"{i}. **{model}** - {rate:.1%}\n"
+
+        report += f"""
+
+## Methodology
+
+### Approach
+- **Technique:** LecPrompt (statistical anomaly detection via log-probability)
+- **Threshold:** τ = μ - k×σ (k={metadata['sensitivity_factor']})
+- **Hypothesis:** Buggy code has more anomalous tokens than correct code
+
+### Test Dataset
+- {metadata['num_examples']} code examples (buggy/correct pairs)
+- Bug types: logic errors, edge cases
+- Metrics: confirmation rate, precision, F1 score
+
+## Detailed Results
+
+### Model Performance Summary
+
+| Model | Confirmations | Total | Rate | Status |
+|-------|--------------|-------|------|--------|
+"""
+
+        for model in ranking:
+            data = results['model_results'].get(model, {})
+            if 'error' in data:
+                report += f"| {model} | - | - | - | ❌ Failed |\n"
+            else:
+                agg = data['aggregate_stats']
+                report += f"| {model} | {agg['confirmations']}/{agg['total_examples']} | {agg['total_examples']} | {agg['confirmation_rate']:.1%} | ✓ |\n"
+
+        # Bug type analysis
+        bug_type_data = stats.get('bug_type_analysis', {})
+        if bug_type_data:
+            report += "\n### Performance by Bug Type\n\n"
+            for bug_type, model_rates in bug_type_data.items():
+                report += f"#### {bug_type.title()}\n\n"
+                for model, rate in sorted(model_rates.items(), key=lambda x: x[1], reverse=True):
+                    report += f"- {model}: {rate:.1%}\n"
+                report += "\n"
+
+        # Statistical tests
+        friedman = stats.get('overall_friedman_test', {})
+        if 'p_value' in friedman:
+            report += f"""
+## Statistical Analysis
+
+### Friedman Test
+- **Statistic:** χ² = {friedman['statistic']:.3f}
+- **P-value:** {friedman['p_value']:.4f}
+- **Result:** {friedman['interpretation']}
+
+"""
+
+        pairwise = stats.get('pairwise_comparisons', {})
+        sig_pairs = [(k, v) for k, v in pairwise.items() if isinstance(v, dict) and v.get('significant', False)]
+
+        if sig_pairs:
+            report += f"### Pairwise Comparisons (McNemar Test)\n\n"
+            report += f"Significant differences (p < 0.05): {len(sig_pairs)}/{len(pairwise)}\n\n"
+
+        # Timing
+        timing = results.get('timing', {})
+        if timing:
+            report += "\n## Performance Metrics\n\n| Model | Total Time | Avg/Example |\n|-------|-----------|-------------|\n"
+            for model in ranking:
+                if model in timing:
+                    t = timing[model]
+                    report += f"| {model} | {t['total_seconds']:.1f}s | {t['avg_per_example']:.1f}s |\n"
+
+        report += f"""
+
+## Conclusions
+
+Based on this comparative study:
+
+1. **Best Overall:** {ranking[0]} achieved the highest confirmation rate ({rates.get(ranking[0], 0):.1%})
+2. **Statistical Significance:** {'Significant' if friedman.get('p_value', 1) < 0.05 else 'No significant'} differences found between models
+3. **Recommendation:** For error detection tasks, consider {ranking[0]} for optimal performance
+
+## Visualizations
+
+See the following interactive visualizations:
+- `confirmation_rates.html` - Model comparison bar chart
+- `bug_type_heatmap.html` - Performance by bug type
+- `radar_comparison.html` - Multi-dimensional comparison
+- `significance_matrix.html` - Statistical significance
+
+---
+
+*Generated by tokenprob Multi-Model Comparison Framework*
+"""
+
+        return report
